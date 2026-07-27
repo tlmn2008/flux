@@ -1,0 +1,43 @@
+==========================================================================
+### Flux CoreX(ivcore11) runtime test evidence
+### 2026-07-27T14:57:40Z
+==========================================================================
+
+>>> Flux 的全部运行时测试 (test/python/**, test/unit/**) 都依赖已编译的原生扩展
+>>> (flux_ths_pybind / libflux_cuda.so / libflux_cuda_ths_op.so)。
+>>> 该原生库因 terminal 级硬件代差 (见 corex_port/build/compile.log:
+>>>   cute/arch/util.hpp:108 __cvta_generic_to_shared undeclared) 无法在 ivcore11 编出。
+>>> 因此没有任何运行时测试用例可以执行。以下为实证：库不存在 + import 失败。
+
+=== 1) 已编译产物是否存在 ===
+ls: cannot access 'python/flux/lib/*.so': No such file or directory
+(无 .so 产物 —— 库未构建)
+
+=== 2) import flux 结果 ===
+  File "/home/repos/flux/python/flux/cpp_mod.py", line 69, in _load_deps
+    _preload_libs("libflux_cuda.so")
+  File "/home/repos/flux/python/flux/cpp_mod.py", line 43, in _preload_libs
+    ctypes.CDLL(libname)
+  File "/usr/local/lib/python3.12/ctypes/__init__.py", line 379, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libflux_cuda.so: cannot open shared object file: No such file or directory
+
+=== 3) pytest 收集 test/python (示例) ===
+    from .cpp_mod import *
+python/flux/cpp_mod.py:77: in <module>
+    _load_deps()
+python/flux/cpp_mod.py:69: in _load_deps
+    _preload_libs("libflux_cuda.so")
+python/flux/cpp_mod.py:43: in _preload_libs
+    ctypes.CDLL(libname)
+/usr/local/lib/python3.12/ctypes/__init__.py:379: in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: libflux_cuda.so: cannot open shared object file: No such file or directory
+=========================== short test summary info ============================
+ERROR test/python/gemm_only/test_gemm_only.py - OSError: libflux_cuda.so: can...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+no tests collected, 1 error in 1.63s
+
+### 运行时测试用例总数: tests_run=0 (test_status=not_attempted / blocked)

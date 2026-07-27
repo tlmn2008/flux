@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "action": "edit",
+      "reason": "新增 Iluvatar CoreX(ivcore11) 探测分支：跳过 NVIDIA 的 CUDA>=11.0 硬门禁；生成器用数值 sm80、device 目标改 ivcore11；翻译 nvcc-only 编译选项(-gencode/--expt-extended-lambda/--expt-relaxed-constexpr/-Xcompiler/-Xcompiler=)为 CoreX clang 等价写法；跳过 Hopper 专用 sm_90a 改写；修复 torch 2.10 的 _prepare_ldflags 签名漂移；注入 CCCL(libcu++) include。"
+    },
+    {
+      "path": "src/generator/CMakeLists.txt",
+      "action": "edit",
+      "reason": "允许通过环境变量 FLUX_COREX_CCCL_INCLUDE 为 host 侧 kernel 生成器注入完整 CCCL/libcu++ 头(CoreX 只带 cuda/std 子集，CUTLASS 3.9 需完整版)。"
+    }
+  ]
+}

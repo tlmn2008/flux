@@ -1,0 +1,134 @@
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/numeric_types.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/half.h:66:
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1634:35: warning: identifier '_fe4m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1634 | cutlass::float_e4m3_t operator "" _fe4m3(long double x) {
+      |                       ~~~~~~~~~~~~^~~~~~
+      |                       operator""_fe4m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1639:35: warning: identifier '_fe4m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1639 | cutlass::float_e4m3_t operator "" _fe4m3(unsigned long long int x) {
+      |                       ~~~~~~~~~~~~^~~~~~
+      |                       operator""_fe4m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1645:36: warning: identifier '_fue4m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1645 | cutlass::float_ue4m3_t operator "" _fue4m3(long double x) {
+      |                        ~~~~~~~~~~~~^~~~~~~
+      |                        operator""_fue4m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1650:36: warning: identifier '_fue4m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1650 | cutlass::float_ue4m3_t operator "" _fue4m3(unsigned long long int x) {
+      |                        ~~~~~~~~~~~~^~~~~~~
+      |                        operator""_fue4m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1656:35: warning: identifier '_fe5m2' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1656 | cutlass::float_e5m2_t operator "" _fe5m2(long double x) {
+      |                       ~~~~~~~~~~~~^~~~~~
+      |                       operator""_fe5m2
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1661:35: warning: identifier '_fe5m2' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1661 | cutlass::float_e5m2_t operator "" _fe5m2(unsigned long long int x) {
+      |                       ~~~~~~~~~~~~^~~~~~
+      |                       operator""_fe5m2
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1667:36: warning: identifier '_fue8m0' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1667 | cutlass::float_ue8m0_t operator "" _fue8m0(long double x)
+      |                        ~~~~~~~~~~~~^~~~~~~
+      |                        operator""_fue8m0
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float8.h:1673:36: warning: identifier '_fue8m0' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+ 1673 | cutlass::float_ue8m0_t operator "" _fue8m0(unsigned long long int x)
+      |                        ~~~~~~~~~~~~^~~~~~~
+      |                        operator""_fue8m0
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/numeric_types.h:41:
+/home/repos/flux/3rdparty/cutlass/include/cutlass/half.h:921:29: warning: identifier '_hf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  921 | cutlass::half_t operator "" _hf(long double x) {
+      |                 ~~~~~~~~~~~~^~~
+      |                 operator""_hf
+/home/repos/flux/3rdparty/cutlass/include/cutlass/half.h:926:29: warning: identifier '_hf' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  926 | cutlass::half_t operator "" _hf(unsigned long long int x) {
+      |                 ~~~~~~~~~~~~^~~
+      |                 operator""_hf
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/numeric_types.h:42:
+/home/repos/flux/3rdparty/cutlass/include/cutlass/bfloat16.h:670:33: warning: identifier '_bf16' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  670 | cutlass::bfloat16_t operator "" _bf16(long double x) {
+      |                     ~~~~~~~~~~~~^~~~~
+      |                     operator""_bf16
+/home/repos/flux/3rdparty/cutlass/include/cutlass/bfloat16.h:675:33: warning: identifier '_bf16' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  675 | cutlass::bfloat16_t operator "" _bf16(unsigned long long int x) {
+      |                     ~~~~~~~~~~~~^~~~~
+      |                     operator""_bf16
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/numeric_types.h:43:
+/home/repos/flux/3rdparty/cutlass/include/cutlass/tfloat32.h:470:33: warning: identifier '_tf32' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  470 | cutlass::tfloat32_t operator "" _tf32(long double x) {
+      |                     ~~~~~~~~~~~~^~~~~
+      |                     operator""_tf32
+/home/repos/flux/3rdparty/cutlass/include/cutlass/tfloat32.h:475:33: warning: identifier '_tf32' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  475 | cutlass::tfloat32_t operator "" _tf32(unsigned long long int x) {
+      |                     ~~~~~~~~~~~~^~~~~
+      |                     operator""_tf32
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/numeric_types.h:47:
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:755:34: warning: identifier '_fe2m1' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  755 | cutlass::float_e2m1_t operator"" _fe2m1(long double x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe2m1
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:761:34: warning: identifier '_fe2m1' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  761 | cutlass::float_e2m1_t operator"" _fe2m1(unsigned long long int x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe2m1
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:766:34: warning: identifier '_fe2m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  766 | cutlass::float_e2m3_t operator"" _fe2m3(long double x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe2m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:772:34: warning: identifier '_fe2m3' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  772 | cutlass::float_e2m3_t operator"" _fe2m3(unsigned long long int x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe2m3
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:778:34: warning: identifier '_fe3m2' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  778 | cutlass::float_e3m2_t operator"" _fe3m2(long double x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe3m2
+/home/repos/flux/3rdparty/cutlass/include/cutlass/float_subbyte.h:784:34: warning: identifier '_fe3m2' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  784 | cutlass::float_e3m2_t operator"" _fe3m2(unsigned long long int x)
+      |                       ~~~~~~~~~~~^~~~~~
+      |                       operator""_fe3m2
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:42:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/threadblock/threadblock_swizzle.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/gemm.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/layout.hpp:34:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/int_tuple.hpp:34:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/container/array.hpp:35:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/numeric/integral_constant.hpp:34:
+/home/repos/flux/3rdparty/cutlass/include/cute/util/print.hpp:175:16: warning: format specifies type 'float' but the argument has type 'double' [-Wformat]
+  175 |   printf("%f", a);
+      |           ~~   ^
+      |           %f
+/home/repos/flux/3rdparty/cutlass/include/cute/util/print.hpp:252:23: warning: format specifies type 'float' but the argument has type 'double' [-Wformat]
+  252 |   printf("%*.3e", 11, v);
+      |           ~~~~~       ^
+      |           %*.3f
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:42:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/threadblock/threadblock_swizzle.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/gemm.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/layout.hpp:34:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/int_tuple.hpp:34:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/container/array.hpp:35:
+/home/repos/flux/3rdparty/cutlass/include/cute/numeric/integral_constant.hpp:519:90: warning: identifier '_c' preceded by whitespace in a literal operator declaration is deprecated [-Wdeprecated-literal-operator]
+  519 | constexpr cute::constant<int,detail::parse_int_digits(0, (digits - '0')...)> operator "" _c()
+      |                                                                              ~~~~~~~~~~~~^~
+      |                                                                              operator""_c
+In file included from p2_sm80_gemm.cu:1:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/device/gemm.h:42:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/threadblock/threadblock_swizzle.h:41:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/gemm/gemm.h:42:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cutlass/detail/layout.hpp:38:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/arch/copy_sm90_tma.hpp:36:
+In file included from /home/repos/flux/3rdparty/cutlass/include/cute/arch/copy.hpp:35:
+/home/repos/flux/3rdparty/cutlass/include/cute/arch/util.hpp:108:32: error: use of undeclared identifier '__cvta_generic_to_shared'
+  108 |   return static_cast<uint32_t>(__cvta_generic_to_shared(ptr));
+      |                                ^~~~~~~~~~~~~~~~~~~~~~~~
+23 warnings and 1 error generated when compiling for ivcore11.

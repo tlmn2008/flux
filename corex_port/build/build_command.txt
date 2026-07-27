@@ -1,0 +1,21 @@
+# Iluvatar CoreX (ivcore11) 构建尝试命令
+# 环境: source /home/init_container.sh (CoreX clang 22.1.0, torch 2.10.0, CUDA 10.2 toolkit)
+# 依赖补齐: pip install nvidia-cuda-cccl-cu12   (CUTLASS 3.9 需要完整 libcu++/CCCL)
+
+export FLUX_COREX_CCCL_INCLUDE=/usr/local/lib/python3.12/site-packages/nvidia/cuda_cccl/include
+export CCC_OVERRIDE_OPTIONS="s/-rdc=true/-fgpu-rdc/"
+
+# CMake 配置 (禁用 NVSHMEM/内网; 用 CoreX clang 作 CUDA 编译器, 生成 sm80 kernel 源, device 目标 ivcore11)
+cd build
+cmake .. -DENABLE_NVSHMEM=OFF -DBUILD_TEST=OFF -DCMAKE_INSTALL_PREFIX=../python/flux
+make -j4 flux_cuda VERBOSE=1
+
+# 直接 device 编译单个真实 CUTLASS kernel TU 作权威取证:
+clang++ -x ivcore --cuda-gpu-arch=ivcore11 -std=c++17 -DNDEBUG -DFLUX_COREX \
+  -I$FLUX_COREX_CCCL_INCLUDE -Iinclude -Isrc \
+  -I3rdparty/cutlass/include -I3rdparty/cutlass/tools/util/include \
+  -I/usr/local/corex/include \
+  -c src/comm_none/cutlass_blockscale_gemm_impl.cu -o /tmp/flux_tu.o
+# => error: use of undeclared identifier '__cvta_generic_to_shared' (cute/arch/util.hpp:108)
+
+# 裸 ISA 探针 (见 corex_port/build/probes/): mma.sync / wgmma / TMA / cp.async 均被 ivcore11 后端拒绝

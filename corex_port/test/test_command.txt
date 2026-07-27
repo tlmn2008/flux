@@ -1,0 +1,6 @@
+# 运行时测试命令 (全部依赖已编译的 flux 原生扩展; 因编译 terminal blocker 无法执行)
+export PYTHONPATH=$PWD/python:$PYTHONPATH
+python3 -c "import flux"                                   # OSError: libflux_cuda.so 不存在
+python3 -m pytest test/python/ -v                          # collection error: 同上, 0 用例可收集
+# 多卡分布式用例 (torchrun) 同样需要该扩展, 未能进入运行阶段。
+# 结论: tests_run=0, test_status=not_attempted

@@ -1,0 +1,14 @@
+# ivcore11 硬件 ISA 裸探针结果 (clang++ -x ivcore --cuda-gpu-arch=ivcore11)
+# 目的: 实证 Flux 依赖的 Ampere(sm80)/Hopper(sm90) 张量核 + 异步拷贝指令在 ivcore11 是否可用
+
+P0 sanity           : PASS  基础 ivcore11 CUDA kernel 正常 (val=42)
+P1 cuda_pipeline.h  : FAIL  fatal error: 'cuda_pipeline.h' file not found (Ampere 异步拷贝头缺失)
+P3 mma.sync m16n8k16: FAIL  llc: couldn't allocate output register / llc command failed (sm80 张量核 mma)
+P4 wgmma.mma_async  : FAIL  llc command failed (sm90 warp-group mma / Hopper)
+P5 cp.async.bulk.tensor(TMA): FAIL  unknown asm constraint 'l' / llc failed (Hopper TMA)
+P6 cp.async         : FAIL  <inline asm> invalid instruction / llc failed (Ampere cp.async)
+P2b CUTLASS Sm80 GEMM(+CCCL): FAIL  error: use of undeclared identifier '__cvta_generic_to_shared'
+
+结论: ivcore11(Volta 级) 不提供 Ampere/Hopper 张量核与异步拷贝 ISA。这些是 CUTLASS 3.9 / Flux
+所有 GEMM kernel 的地基 (cute/arch/util.hpp cast_smem_ptr_to_uint 即用 __cvta_generic_to_shared)。
+属 terminal 级硬件代差, 无 repo-local 规避。

@@ -10,6 +10,12 @@ find_package(CUDAToolkit REQUIRED)
 
 set(FLUX_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../)
 
+# Iluvatar CoreX ships only a subset of libcu++ (cuda/std); CUTLASS 3.9 needs the
+# full CCCL. Allow injecting a CCCL include dir (e.g. from nvidia-cuda-cccl-cu12).
+if(DEFINED ENV{FLUX_COREX_CCCL_INCLUDE} AND EXISTS "$ENV{FLUX_COREX_CCCL_INCLUDE}")
+  include_directories(BEFORE "$ENV{FLUX_COREX_CCCL_INCLUDE}")
+endif()
+
 include_directories(
   ${CUDAToolkit_INCLUDE_DIRS}
   ${FLUX_PROJECT_DIR}/include

@@ -1,0 +1,53 @@
+{
+  "repo_name": "flux",
+  "repo_url": "https://github.com/bytedance/flux",
+  "source_commit": "19831ca2d820e3e782ed1d15d8b52d0898b78b26",
+  "source_commit_date": "2025-08-28T14:26:38+08:00",
+  "source_branch": "main",
+  "migration_started_at": "2026-07-27T14:32:00Z",
+  "migration_finished_at": "2026-07-27T15:10:00Z",
+  "sdk_version": "/usr/local/corex (clang 22.1.0 / 4.5.0.20260630, CUDA 10.2 toolkit, ivcore11)",
+  "skill_version": "corex-CUDA-compatible-migration@1.0",
+
+  "compile_status": "failed",
+  "test_status": "not_attempted",
+  "overall_status": "blocked",
+  "tests_run": 0,
+  "tests_passed": 0,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+
+  "summary": "Flux 是字节跳动的通信-计算重叠 GPU kernel 库，完全构建在 CUTLASS 3.9 之上，仅面向 Ampere(sm80) 与 Hopper(sm90) 张量核，无任何 Volta/sm70 代码路径。迁移到 Iluvatar CoreX(ivcore11，Volta 级) 时，先逐一解决了可绕过的构建层障碍(CUDA>=11.0 门禁、torch 2.10 API 漂移、CUTLASS 缺完整 libcu++/CCCL、nvcc-only 编译选项翻译、生成器数值 arch)，随后在真实 CUTLASS kernel 上撞到 terminal 级硬件代差：CuTe 地基 cast_smem_ptr_to_uint 依赖的 __cvta_generic_to_shared 在 ivcore11 未声明；裸 ISA 探针进一步证明 mma.sync(sm80)/wgmma(sm90)/cp.async.bulk.tensor(TMA)/cp.async 均被 ivcore11 后端拒绝。原生扩展无法编出，故运行时测试一个用例都无法执行。整体判定 blocked。",
+  "key_adaptations": [
+    "CMakeLists.txt 新增 FLUX_COREX 探测分支：跳过 NVIDIA 的 CUDA>=11.0 门禁，改走 ivcore11 目标",
+    "翻译 nvcc-only 编译选项：删除 -gencode / --expt-extended-lambda / --expt-relaxed-constexpr、去 -Xcompiler 包装、-rdc=true 经 CCC_OVERRIDE_OPTIONS 换 -fgpu-rdc",
+    "解耦 kernel 生成器数值 arch(sm80) 与 device 目标 arch(ivcore11)，跳过 Hopper 专用 sm_90a 改写",
+    "修复 torch 2.10 cpp_extension._prepare_ldflags 签名漂移(按 inspect.signature 动态构造参数)",
+    "补齐 CUTLASS 3.9 所需完整 libcu++/CCCL(pip nvidia-cuda-cccl-cu12)，经 FLUX_COREX_CCCL_INCLUDE 注入",
+    "识别 CoreX 自带 nccl/nvshmem(libnccl/libnvshmem_host + 头文件)，可替代从源码用 nvcc 编 NCCL"
+  ],
+  "terminal_blockers": [
+    "ivcore11(Volta 级) 不提供 Ampere/Hopper 张量核与异步拷贝 ISA：CUTLASS 3.9 CuTe 地基依赖的 __cvta_generic_to_shared 未声明(cute/arch/util.hpp:108)，真实 kernel src/comm_none/cutlass_blockscale_gemm_impl.cu 编译即失败",
+    "裸 ISA 探针实证 mma.sync(sm80 张量核) / wgmma(sm90) / cp.async.bulk.tensor(Hopper TMA) / cp.async(Ampere) 均被 ivcore11 clang 后端拒绝(llc crash / invalid instruction)，cuda_pipeline.h 头缺失；Flux 无 Volta 代码路径，整库设计以 Hopper TMA warp-specialized kernel 为核心，属硬件代差，无 repo-local 规避"
+  ],
+  "workaround_blockers": [
+    "CMake 硬门禁 requires cuda>=11.0(CoreX 为 10.2)：已在 CoreX 分支绕过",
+    "torch 2.10 _prepare_ldflags 签名漂移：已按实际签名适配",
+    "CUTLASS 3.9 缺完整 libcu++/CCCL(CoreX 仅带 cuda/std 子集)：已 pip 安装 nvidia-cuda-cccl-cu12 并注入 include",
+    "nvcc-only 编译选项被 CoreX clang 拒绝/忽略：已翻译为 clang 等价写法"
+  ],
+
+  "github": {
+    "fork_url": "https://github.com/tlmn2008/flux",
+    "branch": "corex-port",
+    "default_branch": "corex-port",
+    "default_branch_status": "not_attempted",
+    "compare_url": "https://github.com/tlmn2008/flux/compare/main...corex-port",
+    "push_status": "pending"
+  },
+
+  "local_logs": {
+    "compile_log": "/home/repos/flux/corex_port/build/compile.log",
+    "test_log": "/home/repos/flux/corex_port/test/test.log"
+  }
+}

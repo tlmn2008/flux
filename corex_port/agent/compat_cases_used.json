@@ -1,0 +1,33 @@
+{
+  "skill": "iluvatar-cuda-base",
+  "cases": [
+    {
+      "case": "nvcc-shell-stub-detect",
+      "relevance": "确认 /usr/local/corex/bin/nvcc 是 Bourne-Again shell 脚本(非真编译器)；改用 CoreX clang++ 作 CUDA 编译器。"
+    },
+    {
+      "case": "nvcc-flag-translation",
+      "relevance": "翻译 -gencode / --expt-extended-lambda / --expt-relaxed-constexpr / -Xcompiler / -Xcompiler= / -rdc=true 等 nvcc-only 选项；用 CCC_OVERRIDE_OPTIONS 做 -rdc=true→-fgpu-rdc 的 driver 层替换。"
+    },
+    {
+      "case": "cuda-pipeline-header-missing",
+      "relevance": "实证 cuda_pipeline.h 在 CoreX 缺失(Ampere 异步拷贝)，CUTLASS cp.async 流水线不可用。"
+    },
+    {
+      "case": "cvta-address-space",
+      "relevance": "核心 terminal 证据：CUTLASS CuTe cast_smem_ptr_to_uint 用的 __cvta_generic_to_shared 在 ivcore11 未声明，无法编译。"
+    },
+    {
+      "case": "cuda-std-complex-not-shipped / python-integration",
+      "relevance": "CoreX 只提供 cuda/std 子集(9 项，无 utility/array/tuple)；CUTLASS 3.9 需完整 CCCL，遂 pip 安装 nvidia-cuda-cccl-cu12 补齐。"
+    },
+    {
+      "case": "hardware-arch (sm_80/90 特化 + mma 内建不兼容)",
+      "relevance": "裸 ISA 探针验证 mma.sync(sm80)/wgmma(sm90)/cp.async.bulk.tensor(TMA) 均被 ivcore11 clang 后端拒绝(llc crash / invalid instruction)。"
+    },
+    {
+      "case": "cmake-corex-template",
+      "relevance": "参考 CoreX CMake CUDA 工程约定(CMAKE_CUDA_ARCHITECTURES=ivcore11)；Flux 各 op 子目标的 arch 校验在 CoreX 上表现不一致，记为 workaround-able 但因 terminal 而 moot。"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# 路径相对本文件所在的 corex_port/ 目录
+build/*.log
+env/*.log
+!env/ixsmi.log
+!env/clang_version.txt
+# 注意：test/test.log 必须提交，不在忽略之列

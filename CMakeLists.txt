@@ -32,7 +32,28 @@ message("NVShmem Support: ${ENABLE_NVSHMEM}")
 find_package(CUDAToolkit REQUIRED)
 
 message(STATUS "CUDAToolkit_VERSION: ${CUDAToolkit_VERSION}")
-if(CUDAToolkit_VERSION VERSION_LESS "11.0")
+
+# ---------------------------------------------------------------------------
+# Iluvatar CoreX (ivcore11) port: CoreX ships clang(++) as the CUDA compiler and
+# a CUDA-10.2-compatible toolkit. The upstream >=11.0 gate and sm_80/89/90
+# gencode flags are NVIDIA-specific; detect CoreX and switch to the ivcore11
+# target instead of hard-failing. See corex_port/ for the migration record.
+# ---------------------------------------------------------------------------
+set(FLUX_COREX OFF)
+if(EXISTS "/usr/local/corex" OR DEFINED ENV{COREX_PATH})
+  set(FLUX_COREX ON)
+endif()
+
+if(FLUX_COREX)
+  # The kernel generator + torch arch list expect a numeric SM number; ivcore11
+  # is Volta-class so we attempt Flux's lowest supported arch (sm80) kernels,
+  # while device codegen targets ivcore11 via -x ivcore --cuda-gpu-arch=ivcore11
+  # (injected in CUDA_ARCH_FLAGS below).
+  message(STATUS "Iluvatar CoreX detected: generating sm80 kernels, compiling for ivcore11")
+  set(CUDAARCHS
+      "80"
+      CACHE STRING "CUDA Architectures")
+elseif(CUDAToolkit_VERSION VERSION_LESS "11.0")
   message(FATAL_ERROR "requires cuda to be >= 11.0")
 elseif(CUDAToolkit_VERSION VERSION_LESS "12.0")
   set(CUDAARCHS
@@ -49,6 +70,12 @@ else()
 endif()
 
 set(CMAKE_CUDA_ARCHITECTURES ${CUDAARCHS})
+if(FLUX_COREX)
+  # CoreX clang toolchain only accepts ivcore10/ivcore11/ivcore20 as the CMake
+  # CUDA architecture value; keep CUDAARCHS numeric (=80) for the kernel
+  # generator, but point device codegen at ivcore11.
+  set(CMAKE_CUDA_ARCHITECTURES "ivcore11")
+endif()
 message(STATUS "CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}")
 
 set(SM_CORES "")
@@ -108,19 +135,30 @@ endif()
 
 
 set(CUDA_ARCH_FLAGS)
-foreach(ARCH ${CMAKE_CUDA_ARCHITECTURES})
-  list(APPEND CUDA_ARCH_FLAGS
-       "-gencode=arch=compute_${ARCH},code=\\\"sm_${ARCH},compute_${ARCH}\\\"")
-endforeach()
+if(FLUX_COREX)
+  # CoreX clang is single-target; the device arch (ivcore11) is carried by
+  # CMAKE_CUDA_ARCHITECTURES. NVIDIA -gencode multi-arch fatbin flags are
+  # silently ignored by clang, so emit nothing extra here.
+else()
+  foreach(ARCH ${CMAKE_CUDA_ARCHITECTURES})
+    list(APPEND CUDA_ARCH_FLAGS
+         "-gencode=arch=compute_${ARCH},code=\\\"sm_${ARCH},compute_${ARCH}\\\"")
+  endforeach()
+endif()
 
 string(JOIN " " JOINED_CUDA_ARCH_FLAGS ${CUDA_ARCH_FLAGS})
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${JOINED_CUDA_ARCH_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DNDEBUG")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler -Wno-psabi")
-# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler -Wall")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler=-fno-strict-aliasing")
+if(FLUX_COREX)
+  # nvcc -Xcompiler wrapper / =form are rejected by clang; pass host flags directly.
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Wno-psabi -fno-strict-aliasing")
+else()
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler -Wno-psabi")
+  # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler -Wall")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -Xcompiler=-fno-strict-aliasing")
+endif()
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}  -DCUTLASS_DEBUG_TRACE_LEVEL=0")
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}    -Wall -O0")
@@ -129,9 +167,15 @@ set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -O0 -G -Xcompiler -Wall")
 
 set(CMAKE_CXX_STANDARD "17")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --std=c++17")
+if(FLUX_COREX)
+  # clang CUDA supports extended lambdas / relaxed constexpr natively; the
+  # nvcc --expt-* spellings are rejected as unknown arguments.
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -std=c++17")
+else()
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --std=c++17")
+endif()
 
 if(CUTLASS_TRACE)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DCUTLASS_DEBUG_TRACE_LEVEL=1")
@@ -143,7 +187,11 @@ if(FLUX_DEBUG)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -O3")
+if(FLUX_COREX)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3")
+else()
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -O3")
+endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -210,9 +258,9 @@ print(sysconfig.get_config_var('EXT_SUFFIX'));"
   execute_process(
     COMMAND
       ${PYTHON_EXECUTABLE} "-c"
-      "from torch.utils import cpp_extension; import re; import torch;                                    \
-                   version = tuple(int(i) for i in re.match('(\\d+)\\.(\\d+)\\.(\\d+)', torch.__version__).groups()); \
-                   args = ([],True,False,False) if version >= (1, 8, 0) else ([],True,False);                         \
+      "from torch.utils import cpp_extension; import inspect;                                              \
+                   n = len(inspect.signature(cpp_extension._prepare_ldflags).parameters);                  \
+                   args = tuple([[]] + [False]*(n-1));                                                      \
                    print(' '.join(cpp_extension._prepare_ldflags(*args)),end='');"
     RESULT_VARIABLE _PYTHON_SUCCESS
     OUTPUT_VARIABLE TORCH_LINK)
@@ -235,10 +283,18 @@ print(sysconfig.get_config_var('EXT_SUFFIX'));"
 
 endif()
 
-# force use sm90a for cutlass
-string(REGEX REPLACE "sm_90" "sm_90a" CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS})
-string(REGEX REPLACE "compute_90" "compute_90a" CMAKE_CUDA_FLAGS
-                     ${CMAKE_CUDA_FLAGS})
+# force use sm90a for cutlass (NVIDIA Hopper only; skip on CoreX/ivcore11)
+if(NOT FLUX_COREX)
+  string(REGEX REPLACE "sm_90" "sm_90a" CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS})
+  string(REGEX REPLACE "compute_90" "compute_90a" CMAKE_CUDA_FLAGS
+                       ${CMAKE_CUDA_FLAGS})
+endif()
+
+# CoreX: inject full CCCL (libcu++) headers for CUTLASS 3.9 (CoreX ships only a subset).
+if(DEFINED ENV{FLUX_COREX_CCCL_INCLUDE} AND EXISTS "$ENV{FLUX_COREX_CCCL_INCLUDE}")
+  include_directories(BEFORE "$ENV{FLUX_COREX_CCCL_INCLUDE}")
+  message(STATUS "CoreX CCCL include: $ENV{FLUX_COREX_CCCL_INCLUDE}")
+endif()
 
 set(COMMON_HEADER_DIRS
     ${PROJECT_SOURCE_DIR}/include

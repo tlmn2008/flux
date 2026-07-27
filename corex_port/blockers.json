@@ -1,0 +1,80 @@
+{
+  "blockers": [
+    {
+      "id": 1,
+      "category": "workaround-able",
+      "symptom": "CMake 硬门禁 requires cuda to be >= 11.0（CoreX toolkit 为 CUDA 10.2.89）",
+      "file": "CMakeLists.txt",
+      "error_snippet": "CMake Error at CMakeLists.txt:36 (message): requires cuda to be >= 11.0",
+      "attempts": [
+        {"action": "新增 FLUX_COREX 探测分支，检测到 CoreX 时跳过 >=11.0 门禁并改走 ivcore11 路径", "result": "resolved"}
+      ],
+      "final_verdict": "已绕过，configure 可越过版本门禁",
+      "resolved": true
+    },
+    {
+      "id": 2,
+      "category": "workaround-able",
+      "symptom": "torch 2.10 cpp_extension._prepare_ldflags 签名漂移 (新增 with_sycl/is_standalone 参数)",
+      "file": "CMakeLists.txt",
+      "error_snippet": "TypeError: _prepare_ldflags() missing 1 required positional argument: 'is_standalone'",
+      "attempts": [
+        {"action": "改为按 inspect.signature 实际参数个数动态构造参数", "result": "resolved"}
+      ],
+      "final_verdict": "已按实际签名适配，Torch link 配置通过",
+      "resolved": true
+    },
+    {
+      "id": 3,
+      "category": "workaround-able",
+      "symptom": "CUTLASS 3.9 依赖完整 libcu++/CCCL，CoreX 只提供 cuda/std 子集(无 cuda/std/utility 等)",
+      "file": "3rdparty/cutlass/include/cutlass/fast_math.h",
+      "error_snippet": "fatal error: 'cuda/std/utility' file not found",
+      "attempts": [
+        {"action": "pip install nvidia-cuda-cccl-cu12(12.9.27)，通过 FLUX_COREX_CCCL_INCLUDE 注入完整 CCCL 头", "result": "resolved"}
+      ],
+      "final_verdict": "已补齐 CCCL，CUTLASS 头解析通过，host 侧 kernel 生成器可编译链接",
+      "resolved": true
+    },
+    {
+      "id": 4,
+      "category": "workaround-able",
+      "symptom": "nvcc-only 编译选项(-gencode / --expt-extended-lambda / --expt-relaxed-constexpr / -Xcompiler / -Xcompiler= / -rdc=true) 被 CoreX clang 拒绝或忽略",
+      "file": "CMakeLists.txt",
+      "error_snippet": "clang++: error: unknown argument: '--expt-relaxed-constexpr' / 'unknown argument: -rdc=true'",
+      "attempts": [
+        {"action": "在 FLUX_COREX 分支翻译为 clang 等价写法(去 -gencode/--expt-*、去 -Xcompiler 包装)，并用 CCC_OVERRIDE_OPTIONS 做 -rdc=true→-fgpu-rdc driver 层替换", "result": "resolved"}
+      ],
+      "final_verdict": "已翻译，device 编译能进入 CUTLASS 实例化阶段",
+      "resolved": true
+    },
+    {
+      "id": 5,
+      "category": "workaround-able",
+      "symptom": "kernel 生成器把 --archs 用 std::stoi 解析，传 'ivcore11' 崩溃；且 CoreX CMake 要求 CMAKE_CUDA_ARCHITECTURES∈{ivcore10,ivcore11,ivcore20} 而各 op 子目标校验不一致；test/unit 链接的 CUDA::nvml 目标缺失",
+      "file": "src/*/CMakeLists.txt, test/unit/CMakeLists.txt",
+      "error_snippet": "terminate called after throwing an instance of 'std::invalid_argument' what(): stoi | CMAKE_CUDA_ARCHITECTURES must be set to ivcore10 or ivcore11 or ivcore20 | Target links to CUDA::nvml but the target was not found",
+      "attempts": [
+        {"action": "解耦生成器数值 arch(sm80) 与 device arch(ivcore11)；BUILD_TEST=OFF 绕过 nvml；直接对单个真实 CUTLASS TU 做 device 编译取证", "result": "partial"}
+      ],
+      "final_verdict": "这些均为构建管线层问题(workaround-able)，但因 blocker #6 的 terminal 硬件代差而 moot——即便全部理顺，device 编译仍在 CUTLASS 地基处失败",
+      "resolved": false
+    },
+    {
+      "id": 6,
+      "category": "terminal",
+      "symptom": "ivcore11(Volta 级) 不提供 Ampere/Hopper 张量核与异步拷贝 ISA；CUTLASS 3.9 CuTe 地基即依赖 __cvta_generic_to_shared，Flux 全部 GEMM(sm80/sm90) 无法在 ivcore11 编译",
+      "file": "3rdparty/cutlass/include/cute/arch/util.hpp",
+      "error_snippet": "cute/arch/util.hpp:108: error: use of undeclared identifier '__cvta_generic_to_shared'  (真实 TU: src/comm_none/cutlass_blockscale_gemm_impl.cu)",
+      "attempts": [
+        {"action": "补齐 CCCL 后直接 device 编译真实 CUTLASS kernel TU", "result": "失败：__cvta_generic_to_shared 未声明(Ampere cp.async 共享内存地址内建)"},
+        {"action": "裸 ISA 探针 mma.sync(sm80)", "result": "失败：llc couldn't allocate output register / llc command failed"},
+        {"action": "裸 ISA 探针 wgmma(sm90)", "result": "失败：llc command failed"},
+        {"action": "裸 ISA 探针 cp.async.bulk.tensor / TMA(sm90)", "result": "失败：unknown asm constraint 'l' / llc failed"},
+        {"action": "裸 ISA 探针 cp.async(Ampere) 与 cuda_pipeline.h", "result": "失败：invalid instruction / 头文件缺失"}
+      ],
+      "final_verdict": "terminal：硬件代差(Volta vs Ampere/Hopper)。Flux 无 sm70/Volta 代码路径，全部 kernel 与 tuning config 仅面向 A100(sm80)/H800/H20(sm90)。CuTe cast_smem_ptr_to_uint 用的 __cvta_generic_to_shared 是所有 CUTLASS 3.x kernel 的地基，ivcore11 后端不提供；wgmma/TMA(Hopper) 更是整库设计核心。无 repo-local 规避方案(禁止改 /usr/local/corex、禁止 -O0/降级正确性)。",
+      "resolved": false
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+error: unknown asm constraint 'l' at line 67
+<inline asm>:1:2: error: invalid instruction
+        cp.async.commit_group;
+        ^
+note: !srcloc = 158
+<inline asm>:1:2: error: invalid instruction
+        cp.async.wait_group 0;
+        ^
+note: !srcloc = 200
+clang++: error: llc command failed with exit code 1 (use -v to see invocation)
