@@ -41,9 +41,11 @@
     "fork_url": "https://github.com/tlmn2008/flux",
     "branch": "corex-port",
     "default_branch": "corex-port",
-    "default_branch_status": "not_attempted",
+    "default_branch_status": "success",
     "compare_url": "https://github.com/tlmn2008/flux/compare/main...corex-port",
-    "push_status": "pending"
+    "push_commit": "6b694492bbbc152fbdbef5736273f0a2aa292973",
+    "push_status": "success",
+    "pushed_at": "2026-07-27T15:12:00Z"
   },
 
   "local_logs": {
