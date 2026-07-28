@@ -8,7 +8,6 @@
   "migration_finished_at": "2026-07-27T15:10:00Z",
   "sdk_version": "/usr/local/corex (clang 22.1.0 / 4.5.0.20260630, CUDA 10.2 toolkit, ivcore11)",
   "skill_version": "corex-CUDA-compatible-migration@1.0",
-
   "compile_status": "failed",
   "test_status": "not_attempted",
   "overall_status": "blocked",
@@ -16,7 +15,6 @@
   "tests_passed": 0,
   "tests_failed": 0,
   "tests_skipped": 0,
-
   "summary": "Flux 是字节跳动的通信-计算重叠 GPU kernel 库，完全构建在 CUTLASS 3.9 之上，仅面向 Ampere(sm80) 与 Hopper(sm90) 张量核，无任何 Volta/sm70 代码路径。迁移到 Iluvatar CoreX(ivcore11，Volta 级) 时，先逐一解决了可绕过的构建层障碍(CUDA>=11.0 门禁、torch 2.10 API 漂移、CUTLASS 缺完整 libcu++/CCCL、nvcc-only 编译选项翻译、生成器数值 arch)，随后在真实 CUTLASS kernel 上撞到 terminal 级硬件代差：CuTe 地基 cast_smem_ptr_to_uint 依赖的 __cvta_generic_to_shared 在 ivcore11 未声明；裸 ISA 探针进一步证明 mma.sync(sm80)/wgmma(sm90)/cp.async.bulk.tensor(TMA)/cp.async 均被 ivcore11 后端拒绝。原生扩展无法编出，故运行时测试一个用例都无法执行。整体判定 blocked。",
   "key_adaptations": [
     "CMakeLists.txt 新增 FLUX_COREX 探测分支：跳过 NVIDIA 的 CUDA>=11.0 门禁，改走 ivcore11 目标",
@@ -36,7 +34,12 @@
     "CUTLASS 3.9 缺完整 libcu++/CCCL(CoreX 仅带 cuda/std 子集)：已 pip 安装 nvidia-cuda-cccl-cu12 并注入 include",
     "nvcc-only 编译选项被 CoreX clang 拒绝/忽略：已翻译为 clang 等价写法"
   ],
-
+  "upstream_assessment": {
+    "upstreamable": "no",
+    "nvidia_compatible": "guarded",
+    "notes": "第一方源码仅改 CMakeLists.txt:以 FLUX_COREX 探测分支跳过 >=11.0 硬 FATAL 并翻译 nvcc-only flag，NVIDIA 默认路径不变;torch 2.10 _prepare_ldflags 签名漂移的前向兼容为构建期 monkeypatch(不在源码树)。整库以 Hopper TMA/warp-specialized(mma.sync/wgmma/cp.async/TMA)为地基，ivcore11(Volta 级)不实现这些 ISA(terminal)，核心 kernel 无法编译;当前 CMake 守卫分支通向不可用后端，无独立回上游价值。CLA 需签。"
+  },
+  "bugfixes": [],
   "github": {
     "fork_url": "https://github.com/tlmn2008/flux",
     "branch": "corex-port",
@@ -47,7 +50,6 @@
     "push_status": "success",
     "pushed_at": "2026-07-27T15:12:00Z"
   },
-
   "local_logs": {
     "compile_log": "/home/repos/flux/corex_port/build/compile.log",
     "test_log": "/home/repos/flux/corex_port/test/test.log"
