@@ -35,9 +35,8 @@
     "nvcc-only 编译选项被 CoreX clang 拒绝/忽略：已翻译为 clang 等价写法"
   ],
   "upstream_assessment": {
-    "upstreamable": "no",
-    "nvidia_compatible": "guarded",
-    "notes": "第一方源码仅改 CMakeLists.txt:以 FLUX_COREX 探测分支跳过 >=11.0 硬 FATAL 并翻译 nvcc-only flag，NVIDIA 默认路径不变;torch 2.10 _prepare_ldflags 签名漂移的前向兼容为构建期 monkeypatch(不在源码树)。整库以 Hopper TMA/warp-specialized(mma.sync/wgmma/cp.async/TMA)为地基，ivcore11(Volta 级)不实现这些 ISA(terminal)，核心 kernel 无法编译;当前 CMake 守卫分支通向不可用后端，无独立回上游价值。CLA 需签。"
+    "upstream_status": "blocked",
+    "notes": "第一方源码仅改 CMakeLists.txt(以 FLUX_COREX 探测分支跳过硬 FATAL 并翻译 nvcc-only flag),NVIDIA 默认路径不变。但整库以 Hopper TMA/warp-specialized(mma.sync/wgmma/cp.async/TMA)为地基,ivcore11(Volta 级)不实现这些 ISA,核心 kernel 编译即失败(terminal),CMake 守卫分支通向不可用后端,CoreX 适配产不出可用后端,无可上游的 CoreX 支持。CLA 需签。"
   },
   "bugfixes": [],
   "github": {
