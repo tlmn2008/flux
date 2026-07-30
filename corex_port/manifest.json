@@ -6,7 +6,7 @@
   "source_branch": "main",
   "migration_started_at": "2026-07-27T14:32:00Z",
   "migration_finished_at": "2026-07-27T15:10:00Z",
-  "sdk_version": "/usr/local/corex (clang 22.1.0 / 4.5.0.20260630, CUDA 10.2 toolkit, ivcore11)",
+  "sdk_version": "CoreX 4.5.0.20260630",
   "skill_version": "corex-CUDA-compatible-migration@1.0",
   "compile_status": "failed",
   "test_status": "not_attempted",
