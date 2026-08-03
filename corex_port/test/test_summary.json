@@ -3,9 +3,6 @@
   "tests_passed": 0,
   "tests_failed": 0,
   "tests_skipped": 0,
-  "scope": "Flux 的全部运行时测试(test/python/** 分布式用例 + test/unit/** C++ 单测)均依赖已编译的原生扩展 flux_ths_pybind / libflux_cuda.so。该原生库因 terminal 级硬件代差无法在 ivcore11 编出，故没有任何运行时用例进入执行阶段。",
   "run_command": "PYTHONPATH=$PWD/python python3 -m pytest test/python/ -v  (collection error: OSError libflux_cuda.so 不存在)",
-  "test_status": "not_attempted",
-  "note": "tests_run=0：编译 terminal blocker(见 blockers.json #6, build/compile.log cute/arch/util.hpp:108 __cvta_generic_to_shared)。import flux 直接因 libflux_cuda.so 缺失而 OSError，pytest 收集 0 用例。未用编译面数字回填测试计数。",
-  "metrics": []
+  "notes": "scope: Flux 的全部运行时测试(test/python/** 分布式用例 + test/unit/** C++ 单测)均依赖已编译的原生扩展 flux_ths_pybind / libflux_cuda.so。该原生库因 terminal 级硬件代差无法在 ivcore11 编出，故没有任何运行时用例进入执行阶段。\ntest_status: not_attempted\nnote: tests_run=0：编译 terminal blocker(见 blockers.json #6, build/compile.log cute/arch/util.hpp:108 __cvta_generic_to_shared)。import flux 直接因 libflux_cuda.so 缺失而 OSError，pytest 收集 0 用例。未用编译面数字回填测试计数。"
 }

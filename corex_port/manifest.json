@@ -24,16 +24,6 @@
     "补齐 CUTLASS 3.9 所需完整 libcu++/CCCL(pip nvidia-cuda-cccl-cu12)，经 FLUX_COREX_CCCL_INCLUDE 注入",
     "识别 CoreX 自带 nccl/nvshmem(libnccl/libnvshmem_host + 头文件)，可替代从源码用 nvcc 编 NCCL"
   ],
-  "terminal_blockers": [
-    "ivcore11(Volta 级) 不提供 Ampere/Hopper 张量核与异步拷贝 ISA：CUTLASS 3.9 CuTe 地基依赖的 __cvta_generic_to_shared 未声明(cute/arch/util.hpp:108)，真实 kernel src/comm_none/cutlass_blockscale_gemm_impl.cu 编译即失败",
-    "裸 ISA 探针实证 mma.sync(sm80 张量核) / wgmma(sm90) / cp.async.bulk.tensor(Hopper TMA) / cp.async(Ampere) 均被 ivcore11 clang 后端拒绝(llc crash / invalid instruction)，cuda_pipeline.h 头缺失；Flux 无 Volta 代码路径，整库设计以 Hopper TMA warp-specialized kernel 为核心，属硬件代差，无 repo-local 规避"
-  ],
-  "workaround_blockers": [
-    "CMake 硬门禁 requires cuda>=11.0(CoreX 为 10.2)：已在 CoreX 分支绕过",
-    "torch 2.10 _prepare_ldflags 签名漂移：已按实际签名适配",
-    "CUTLASS 3.9 缺完整 libcu++/CCCL(CoreX 仅带 cuda/std 子集)：已 pip 安装 nvidia-cuda-cccl-cu12 并注入 include",
-    "nvcc-only 编译选项被 CoreX clang 拒绝/忽略：已翻译为 clang 等价写法"
-  ],
   "upstream_assessment": {
     "upstream_status": "blocked",
     "notes": "第一方源码仅改 CMakeLists.txt(以 FLUX_COREX 探测分支跳过硬 FATAL 并翻译 nvcc-only flag),NVIDIA 默认路径不变。但整库以 Hopper TMA/warp-specialized(mma.sync/wgmma/cp.async/TMA)为地基,ivcore11(Volta 级)不实现这些 ISA,核心 kernel 编译即失败(terminal),CMake 守卫分支通向不可用后端,CoreX 适配产不出可用后端,无可上游的 CoreX 支持。CLA 需签。"
